@@ -1,0 +1,207 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Party {
+  id              Int       @id @default(autoincrement())
+  code            String    @unique @default(cuid())
+  type            PartyType
+  cashPartyName   String?
+  cashAddress     String?
+  cashCell        String?
+  cashEmail       String?
+  gstPartyName    String?
+  strn            String?
+  ntn             String?
+  gstAddress      String?
+  gstCell         String?
+  gstEmail        String?
+  ipConcernPerson String?
+  ipCell          String?
+  ipEmail         String?
+  cpConcernPerson String?
+  cpCell          String?
+  cpEmail         String?
+  refPersonName   String?
+  refPersonCell   String?
+  others          String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  bookingContracts    Contract[]    @relation("BookingParty")
+  chequeContracts     Contract[]    @relation("ChequeParty")
+  othersCom1Contracts Contract[]    @relation("OthersCom1")
+  othersCom2Contracts Contract[]    @relation("OthersCom2")
+  transactions        Transaction[]
+
+  @@map("parties")
+}
+
+model Item {
+  id        Int          @id @default(autoincrement())
+  code      String       @unique @default(cuid())
+  category  ItemCategory
+  name      String
+  box1      String?
+  box2      String?
+  box3      String?
+  box4      String?
+  box5      String?
+  box6      String?
+  box7      String?
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  contractItems    ContractItem[]
+  transactionItems TransactionItem[]
+
+  @@map("items")
+}
+
+model Contract {
+  id             Int            @id @default(autoincrement())
+  code           String         @unique @default(cuid())
+  refTypeSerial  Int            @default(1)
+  contractType   ContractType
+  partyRefNo     String?
+  hasGst         Boolean        @default(false)
+  hasCommission  Boolean        @default(false)
+  rateOption     RateOption     @default(FULL)
+  bookingPartyId Int?
+  bookingParty   Party?         @relation("BookingParty", fields: [bookingPartyId], references: [id])
+  chequePartyId  Int?
+  chequeParty    Party?         @relation("ChequeParty", fields: [chequePartyId], references: [id])
+  items          ContractItem[]
+  creditDays     Int?
+  salesTax       Decimal?       @db.Decimal(10, 2)
+  fTax           Decimal?       @db.Decimal(10, 2)
+  aTax           Decimal?       @db.Decimal(10, 2)
+  iTax           Decimal?       @db.Decimal(10, 2)
+  commission     Decimal?       @db.Decimal(10, 2)
+  othersCom1Id   Int?
+  othersCom1     Party?         @relation("OthersCom1", fields: [othersCom1Id], references: [id])
+  ocRate1        Decimal?       @db.Decimal(10, 2)
+  othersCom2Id   Int?
+  othersCom2     Party?         @relation("OthersCom2", fields: [othersCom2Id], references: [id])
+  ocRate2        Decimal?       @db.Decimal(10, 2)
+  specialNote    String?
+  status         ContractStatus @default(PREPARED)
+  preparedBy     String?
+  checkedBy      String?
+  approvedBy     String?
+  preparedAt     DateTime?
+  checkedAt      DateTime?
+  approvedAt     DateTime?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  transactions   Transaction[]
+
+  @@map("contracts")
+}
+
+model ContractItem {
+  id         Int      @id @default(autoincrement())
+  contractId Int
+  contract   Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  itemId     Int?
+  item       Item?    @relation(fields: [itemId], references: [id])
+  quality    String?
+  bags       Int?
+  rate       Decimal? @db.Decimal(10, 2)
+  clRate     Decimal? @db.Decimal(10, 2)
+  amount     Decimal? @db.Decimal(12, 2)
+  sortOrder  Int      @default(0)
+
+  @@map("contract_items")
+}
+
+model Transaction {
+  id         Int              @id @default(autoincrement())
+  code       String           @unique @default(cuid())
+  noteType   NoteType
+  partyId    Int?
+  party      Party?           @relation(fields: [partyId], references: [id])
+  contractId Int?
+  contract   Contract?        @relation(fields: [contractId], references: [id])
+  salesTax   Decimal?         @db.Decimal(10, 2)
+  fTax       Decimal?         @db.Decimal(10, 2)
+  aTax       Decimal?         @db.Decimal(10, 2)
+  iTax       Decimal?         @db.Decimal(10, 2)
+  preparedBy String?
+  checkedBy  String?
+  approvedBy String?
+  preparedAt DateTime?        @default(now())
+  checkedAt  DateTime?
+  approvedAt DateTime?
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
+  items      TransactionItem[]
+
+  @@map("transactions")
+}
+
+model TransactionItem {
+  id            Int         @id @default(autoincrement())
+  transactionId Int
+  transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  itemId        Int?
+  item          Item?       @relation(fields: [itemId], references: [id])
+  quality       String?
+  bags          Int?
+  rate          Decimal?    @db.Decimal(10, 2)
+  amount        Decimal?    @db.Decimal(12, 2)
+  sortOrder     Int         @default(0)
+
+  @@map("transaction_items")
+}
+
+enum PartyType {
+  CASH
+  GST
+}
+
+enum ItemCategory {
+  COUNT
+  QUALITY
+  BG_YARN
+  FABRIC
+  CUTT_PIECE
+  LEFT_OVER
+  GREY_CLOTH
+}
+
+enum ContractType {
+  CASH_PURCHASE
+  GST_PURCHASE
+  CASH_SALE
+  GST_SALE
+  SERVICES
+  TRANSACTION
+}
+
+enum RateOption {
+  FULL
+  COM_LESS
+}
+
+enum ContractStatus {
+  PREPARED
+  CHECKED
+  APPROVED
+}
+
+enum NoteType {
+  YARN_RECEIPT_CASH
+  YARN_RECEIPT_GST
+  YARN_ISSUE_CASH
+  YARN_ISSUE_GST
+  SERVICES_NOTE
+  TRANSACTION_NOTE
+}

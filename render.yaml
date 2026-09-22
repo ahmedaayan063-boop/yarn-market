@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: yarn-market-frontend
+    env: static
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: build
+    envVars:
+      - key: REACT_APP_API_URL
+        value: https://yarn-market-backend.up.railway.app/api
