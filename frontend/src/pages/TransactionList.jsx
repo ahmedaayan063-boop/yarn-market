@@ -1,13 +1,13 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Tabs, Card, Row, Col, Select, Button, Table, Typography,
   Tag, Space, Alert, Spin, InputNumber, message, Divider,
-  Modal, Descriptions, Input
+  Modal, Descriptions
 } from 'antd';
 import {
   PrinterOutlined, FileTextOutlined, SwapOutlined,
   CheckCircleOutlined, UserOutlined, ReloadOutlined,
-  RetweetOutlined, FileDoneOutlined, DollarOutlined
+  RetweetOutlined, FileDoneOutlined
 } from '@ant-design/icons';
 import { partyAPI, contractAPI, transactionAPI } from '../services/api';
 
@@ -15,14 +15,7 @@ const { Text } = Typography;
 const { Option } = Select;
 
 const IS = { fontFamily: 'Verdana,sans-serif', fontSize: 13 };
-const lbl = (t) => (
-  <span style={{ fontSize: 10, fontWeight: 700, color: '#555',
-    textTransform: 'uppercase', letterSpacing: '0.04em', fontFamily: 'Verdana,sans-serif' }}>
-    {t}
-  </span>
-);
 
-// ─── Shared header for all print previews ────────────────────────────────────
 function PrintHeader({ title, refNo, color }) {
   return (
     <div style={{ borderBottom: '2px solid #333', paddingBottom: 8, marginBottom: 12 }}>
@@ -33,24 +26,17 @@ function PrintHeader({ title, refNo, color }) {
         </Col>
         <Col style={{ textAlign: 'center' }}>
           <div style={{ fontSize: 15, fontWeight: 700, color, fontFamily: 'Verdana,sans-serif',
-            border: `2px solid ${color}`, borderRadius: 4, padding: '2px 12px' }}>
-            {title}
-          </div>
+            border: `2px solid ${color}`, borderRadius: 4, padding: '2px 12px' }}>{title}</div>
         </Col>
         <Col style={{ textAlign: 'right' }}>
-          <div style={{ fontSize: 12, fontFamily: 'Verdana,sans-serif' }}>
-            Ref. No: <strong>{refNo || 'DOC-System default'}</strong>
-          </div>
-          <div style={{ fontSize: 12, fontFamily: 'Verdana,sans-serif' }}>
-            Date: <strong>{new Date().toLocaleDateString('en-PK')}</strong>
-          </div>
+          <div style={{ fontSize: 12, fontFamily: 'Verdana,sans-serif' }}>Ref. No: <strong>{refNo || 'DOC-System default'}</strong></div>
+          <div style={{ fontSize: 12, fontFamily: 'Verdana,sans-serif' }}>Date: <strong>{new Date().toLocaleDateString('en-PK')}</strong></div>
         </Col>
       </Row>
     </div>
   );
 }
 
-// ─── Shared print signature row ───────────────────────────────────────────────
 function PrintSignatures() {
   return (
     <Row gutter={16} style={{ marginTop: 36 }}>
@@ -64,19 +50,16 @@ function PrintSignatures() {
   );
 }
 
-// ─── Shared items table for print ─────────────────────────────────────────────
 function PrintItemsTable({ rows, totalBags, totalValue }) {
   return (
     <Table
       dataSource={rows.filter(r => r.bags > 0)}
       rowKey="_key"
-      size="small"
-      bordered
-      pagination={false}
+      size="small" bordered pagination={false}
       columns={[
         { title: 'Count/Yarn', render: (_, r) => r.yarnName, width: 160 },
-        { title: 'Quality',    dataIndex: 'quality',  width: 100 },
-        { title: 'Bags',       dataIndex: 'bags',     width: 70  },
+        { title: 'Quality',    dataIndex: 'quality', width: 100 },
+        { title: 'Bags',       dataIndex: 'bags',    width: 70  },
         { title: 'Rate (Rs)',  render: (_, r) => `Rs ${r.rate?.toLocaleString('en-PK')}`, width: 100 },
         { title: 'Amount (Rs)', render: (_, r) => `Rs ${r.value?.toLocaleString('en-PK', { minimumFractionDigits: 2 })}`, width: 120 },
       ]}
@@ -90,7 +73,6 @@ function PrintItemsTable({ rows, totalBags, totalValue }) {
   );
 }
 
-// ─── PANEL: Yarn Receipt / Yarn Issue ─────────────────────────────────────────
 function YarnPanel({ noteType, docLabel, color, bgColor }) {
   const [step,          setStep]          = useState(1);
   const [cashGst,       setCashGst]       = useState(null);
@@ -99,7 +81,7 @@ function YarnPanel({ noteType, docLabel, color, bgColor }) {
   const [partyObj,      setPartyObj]      = useState(null);
   const [rows,          setRows]          = useState([]);
   const [loading,       setLoading]       = useState(false);
-  const [saving,        setSaving]        = useState(false);
+  const [savingTxn,     setSavingTxn]     = useState(false);
   const [error,         setError]         = useState(null);
   const [printModal,    setPrintModal]    = useState(false);
   const [savedTxn,      setSavedTxn]      = useState(null);
@@ -162,7 +144,7 @@ function YarnPanel({ noteType, docLabel, color, bgColor }) {
 
   const handleSave = async () => {
     if (!filledRows.length) { message.warning('Enter bags for at least one item'); return; }
-    setSaving(true); setError(null);
+    setSavingTxn(true); setError(null);
     try {
       const saved = await transactionAPI.create({
         noteType: noteType + '_' + cashGst,
@@ -172,7 +154,7 @@ function YarnPanel({ noteType, docLabel, color, bgColor }) {
       setSavedTxn(saved); setStep(4);
       message.success(`${docLabel} saved`);
     } catch (e) { setError(e.message); }
-    finally { setSaving(false); }
+    finally { setSavingTxn(false); }
   };
 
   const handleReset = () => {
@@ -186,8 +168,7 @@ function YarnPanel({ noteType, docLabel, color, bgColor }) {
     { title: 'Quality', dataIndex: 'quality', width: 90 },
     { title: 'Rate (Rs)', width: 90, render: (_, r) => <Text style={{ color: '#1B4F8A', fontWeight: 700 }}>Rs {r.rate?.toLocaleString('en-PK')}</Text> },
     {
-      title: <span>Bags <Tag color="orange" style={{ fontSize: 10 }}>ENTER</Tag></span>,
-      width: 120,
+      title: <span>Bags <Tag color="orange" style={{ fontSize: 10 }}>ENTER</Tag></span>, width: 120,
       render: (_, r) => (
         <InputNumber value={r.bags} onChange={v => updateBags(r._key, v)}
           min={0} placeholder={`Max ${r.maxBags}`} size="small"
@@ -195,8 +176,7 @@ function YarnPanel({ noteType, docLabel, color, bgColor }) {
       )
     },
     {
-      title: <span>Value (Rs) <Tag color="blue" style={{ fontSize: 10 }}>AUTO</Tag></span>,
-      width: 130,
+      title: <span>Value (Rs) <Tag color="blue" style={{ fontSize: 10 }}>AUTO</Tag></span>, width: 130,
       render: (_, r) => r.value
         ? <Text style={{ color: '#1D6A3A', fontWeight: 700 }}>Rs {r.value.toLocaleString('en-PK', { minimumFractionDigits: 2 })}</Text>
         : <Text type="secondary">—</Text>
@@ -207,12 +187,11 @@ function YarnPanel({ noteType, docLabel, color, bgColor }) {
     <div>
       {error && <Alert type="error" message={error} style={{ marginBottom: 8 }} closable onClose={() => setError(null)} />}
 
-      {/* Step 1: Cash/GST */}
       <Card size="small" style={{ marginBottom: 8, borderLeft: `4px solid ${color}` }}
         title={<span style={{ color, fontWeight: 700, fontSize: 12, fontFamily: 'Verdana,sans-serif' }}>Step 1 — Cash or GST?</span>}>
         <Space size={10}>
           {['CASH', 'GST'].map(t => (
-            <div key={t} onClick={() => { setCashGst(t); setStep(2); setSelectedParty(null); setPartyObj(null); setRows([]); setStep(2); }}
+            <div key={t} onClick={() => { setCashGst(t); setStep(2); setSelectedParty(null); setPartyObj(null); setRows([]); }}
               style={{ padding: '8px 26px', border: `2px solid ${cashGst === t ? color : '#D9D9D9'}`,
                 borderRadius: 5, background: cashGst === t ? bgColor : '#fff',
                 cursor: 'pointer', fontWeight: 700, fontSize: 14, color: cashGst === t ? color : '#555',
@@ -223,7 +202,6 @@ function YarnPanel({ noteType, docLabel, color, bgColor }) {
         </Space>
       </Card>
 
-      {/* Step 2: Party */}
       {step >= 2 && cashGst && (
         <Card size="small" style={{ marginBottom: 8, borderLeft: `4px solid ${color}` }}
           title={<span style={{ color, fontWeight: 700, fontSize: 12, fontFamily: 'Verdana,sans-serif' }}>Step 2 — Select Party</span>}>
@@ -231,8 +209,7 @@ function YarnPanel({ noteType, docLabel, color, bgColor }) {
             <Row gutter={10} align="middle">
               <Col span={10}>
                 <Select showSearch style={{ width: '100%', ...IS }} size="large"
-                  placeholder={`Select ${cashGst} party...`} value={selectedParty}
-                  onChange={onPartySelect}
+                  placeholder={`Select ${cashGst} party...`} value={selectedParty} onChange={onPartySelect}
                   filterOption={(i, o) => o?.children?.toString().toLowerCase().includes(i.toLowerCase())}>
                   {parties.map(p => (
                     <Option key={p.id} value={p.id}>
@@ -254,13 +231,17 @@ function YarnPanel({ noteType, docLabel, color, bgColor }) {
         </Card>
       )}
 
-      {/* Step 3: Items */}
       {step >= 3 && (
         <Card size="small" style={{ marginBottom: 8, borderLeft: `4px solid ${color}` }}
           title={
             <Row justify="space-between">
               <Col><span style={{ color, fontWeight: 700, fontSize: 12, fontFamily: 'Verdana,sans-serif' }}>Step 3 — Enter Bags (Rate & Value auto from contracts)</span></Col>
-              <Col><Space><Text style={{ fontSize: 12, fontFamily: 'Verdana,sans-serif' }}>Bags: <strong>{totalBags}</strong></Text><Text style={{ fontSize: 12, fontFamily: 'Verdana,sans-serif' }}>Total: <strong style={{ color }}>Rs {totalValue.toLocaleString('en-PK', { minimumFractionDigits: 2 })}</strong></Text></Space></Col>
+              <Col>
+                <Space>
+                  <Text style={{ fontSize: 12, fontFamily: 'Verdana,sans-serif' }}>Bags: <strong>{totalBags}</strong></Text>
+                  <Text style={{ fontSize: 12, fontFamily: 'Verdana,sans-serif' }}>Total: <strong style={{ color }}>Rs {totalValue.toLocaleString('en-PK', { minimumFractionDigits: 2 })}</strong></Text>
+                </Space>
+              </Col>
             </Row>
           }>
           {rows.length === 0
@@ -279,7 +260,6 @@ function YarnPanel({ noteType, docLabel, color, bgColor }) {
         </Card>
       )}
 
-      {/* Step 4: Done */}
       {step === 4 && savedTxn && (
         <Card size="small" style={{ marginBottom: 8, borderLeft: '4px solid #1D6A3A', background: '#F0FFF4' }}>
           <Row align="middle" gutter={10}>
@@ -294,10 +274,9 @@ function YarnPanel({ noteType, docLabel, color, bgColor }) {
         </Card>
       )}
 
-      {/* Actions */}
       {step >= 3 && (
         <div className="form-actions">
-          <Button type="primary" size="large" icon={<FileTextOutlined />} loading={saving}
+          <Button type="primary" size="large" icon={<FileTextOutlined />} loading={savingTxn}
             onClick={step < 4 ? handleSave : undefined} disabled={step === 4}
             style={{ background: color, borderColor: color, minWidth: 130 }}>
             {step === 4 ? `${docLabel} Saved ✓` : `Save ${docLabel}`}
@@ -312,7 +291,6 @@ function YarnPanel({ noteType, docLabel, color, bgColor }) {
         </div>
       )}
 
-      {/* Print modal */}
       <Modal open={printModal} onCancel={() => setPrintModal(false)} width={720}
         title={<span style={{ fontFamily: 'Verdana,sans-serif', fontWeight: 700 }}>Gate Pass — {docLabel} Preview</span>}
         footer={[
@@ -340,24 +318,21 @@ function YarnPanel({ noteType, docLabel, color, bgColor }) {
   );
 }
 
-// ─── PANEL: Return Note ───────────────────────────────────────────────────────
 function ReturnPanel() {
   const color = '#8B1A1A';
-  const [returnType,    setReturnType]    = useState(null); // PURCHASE_RETURN | SALE_RETURN
+  const [returnType,    setReturnType]    = useState(null);
   const [cashGst,       setCashGst]       = useState(null);
   const [parties,       setParties]       = useState([]);
-  const [transactions,  setTransactions]  = useState([]);
   const [selectedParty, setSelectedParty] = useState(null);
   const [partyObj,      setPartyObj]      = useState(null);
   const [rows,          setRows]          = useState([]);
   const [loading,       setLoading]       = useState(false);
-  const [saving,        setSaving]        = useState(false);
+  const [savingReturn,  setSavingReturn]  = useState(false);
   const [error,         setError]         = useState(null);
   const [printModal,    setPrintModal]    = useState(false);
   const [savedTxn,      setSavedTxn]      = useState(null);
 
-  // doc label based on return type
-  const docLabel = returnType === 'PURCHASE_RETURN' ? 'OGP' : 'IGP';
+  const docLabel   = returnType === 'PURCHASE_RETURN' ? 'OGP' : 'IGP';
   const stockEffect = returnType === 'PURCHASE_RETURN' ? 'Stock Less' : 'Stock Add';
 
   useEffect(() => {
@@ -372,27 +347,19 @@ function ReturnPanel() {
   useEffect(() => {
     if (!selectedParty || !returnType) return;
     setLoading(true);
-    // Load only the relevant IGP/OGP transactions for this party
     transactionAPI.getAll()
       .then(all => {
         const noteFilter = returnType === 'PURCHASE_RETURN'
           ? ['YARN_RECEIPT_CASH', 'YARN_RECEIPT_GST']
-          : ['YARN_ISSUE_CASH',   'YARN_ISSUE_GST'];
-        const relevant = all.filter(t =>
-          t.partyId === selectedParty && noteFilter.includes(t.noteType)
-        );
+          : ['YARN_ISSUE_CASH', 'YARN_ISSUE_GST'];
+        const relevant = all.filter(t => t.partyId === selectedParty && noteFilter.includes(t.noteType));
         const built = relevant.flatMap(t =>
           (t.items || []).map(ti => ({
-            _key:     `${t.id}-${ti.id}`,
-            txnId:    t.id,
-            txnCode:  t.code?.slice(0, 8),
-            txnType:  t.noteType,
-            itemId:   ti.itemId,
-            yarnName: ti.item?.name || '—',
-            quality:  ti.quality || '—',
-            rate:     ti.rate ? Number(ti.rate) : 0,
-            origBags: ti.bags || 0,
-            bags:     null, value: null,
+            _key: `${t.id}-${ti.id}`,
+            txnId: t.id, txnCode: t.code?.slice(0, 8),
+            itemId: ti.itemId, yarnName: ti.item?.name || '—',
+            quality: ti.quality || '—', rate: ti.rate ? Number(ti.rate) : 0,
+            origBags: ti.bags || 0, bags: null, value: null,
           }))
         );
         setRows(built);
@@ -401,11 +368,7 @@ function ReturnPanel() {
       .finally(() => setLoading(false));
   }, [selectedParty, returnType]);
 
-  const onPartySelect = pid => {
-    setSelectedParty(pid);
-    setPartyObj(parties.find(x => x.id === pid));
-    setRows([]);
-  };
+  const onPartySelect = pid => { setSelectedParty(pid); setPartyObj(parties.find(x => x.id === pid)); setRows([]); };
 
   const updateBags = (key, bags) => {
     setRows(prev => prev.map(r => {
@@ -422,11 +385,11 @@ function ReturnPanel() {
 
   const handleSave = async () => {
     if (!filledRows.length) { message.warning('Enter bags to return'); return; }
-    setSaving(true); setError(null);
+    setSavingReturn(true); setError(null);
     try {
       const noteType = returnType === 'PURCHASE_RETURN'
         ? (cashGst === 'GST' ? 'YARN_RECEIPT_GST' : 'YARN_RECEIPT_CASH')
-        : (cashGst === 'GST' ? 'YARN_ISSUE_GST'   : 'YARN_ISSUE_CASH');
+        : (cashGst === 'GST' ? 'YARN_ISSUE_GST' : 'YARN_ISSUE_CASH');
       const saved = await transactionAPI.create({
         noteType: `RETURN_${noteType}`,
         partyId: selectedParty,
@@ -435,7 +398,7 @@ function ReturnPanel() {
       setSavedTxn(saved);
       message.success('Return note saved');
     } catch (e) { setError(e.message); }
-    finally { setSaving(false); }
+    finally { setSavingReturn(false); }
   };
 
   const handleReset = () => {
@@ -448,9 +411,9 @@ function ReturnPanel() {
     { title: 'Yarn / Count', width: 140, render: (_, r) => <strong>{r.yarnName}</strong> },
     { title: 'Quality', dataIndex: 'quality', width: 90 },
     { title: 'Rate (Rs)', width: 90, render: (_, r) => <Text style={{ color: '#1B4F8A', fontWeight: 700 }}>Rs {r.rate?.toLocaleString('en-PK')}</Text> },
-    { title: `Orig Bags`, width: 80, render: (_, r) => <Text type="secondary">{r.origBags}</Text> },
+    { title: 'Orig Bags', width: 80, render: (_, r) => <Text type="secondary">{r.origBags}</Text> },
     { title: <span>Return Bags <Tag color="red" style={{ fontSize: 10 }}>ENTER</Tag></span>, width: 120,
-      render: (_, r) => <InputNumber value={r.bags} onChange={v => updateBags(r._key, v)} min={0} max={r.origBags} size="small" style={{ width: '100%', borderColor: r.bags ? color : undefined }} /> },
+      render: (_, r) => <InputNumber value={r.bags} onChange={v => updateBags(r._key, v)} min={0} max={r.origBags} size="small" style={{ width: '100%' }} /> },
     { title: <span>Value (Rs) <Tag color="blue" style={{ fontSize: 10 }}>AUTO</Tag></span>, width: 120,
       render: (_, r) => r.value ? <Text style={{ color, fontWeight: 700 }}>Rs {r.value.toLocaleString('en-PK', { minimumFractionDigits: 2 })}</Text> : <Text type="secondary">—</Text> },
   ];
@@ -459,7 +422,6 @@ function ReturnPanel() {
     <div>
       {error && <Alert type="error" message={error} style={{ marginBottom: 8 }} closable onClose={() => setError(null)} />}
 
-      {/* Step 1: Return type */}
       <Card size="small" style={{ marginBottom: 8, borderLeft: `4px solid ${color}` }}
         title={<span style={{ color, fontWeight: 700, fontSize: 12, fontFamily: 'Verdana,sans-serif' }}>Step 1 — Return Type</span>}>
         <Row gutter={10}>
@@ -483,14 +445,12 @@ function ReturnPanel() {
           ))}
         </Row>
         {returnType && (
-          <div style={{ marginTop: 10, padding: '6px 10px', background: '#FFFBE6', border: '1px solid #FFD666', borderRadius: 4, fontSize: 12, fontFamily: 'Verdana,sans-serif' }}>
-            Return Note ref: <strong>By Default Ref. as per above selection — {docLabel}</strong>
-            &nbsp;&nbsp;|&nbsp;&nbsp; Effect: <strong>{stockEffect}</strong>
+          <div style={{ marginTop: 8, padding: '5px 10px', background: '#FFFBE6', border: '1px solid #FFD666', borderRadius: 4, fontSize: 12, fontFamily: 'Verdana,sans-serif' }}>
+            Return Note ref: <strong>By Default Ref. as per above selection — {docLabel}</strong> &nbsp;|&nbsp; Effect: <strong>{stockEffect}</strong>
           </div>
         )}
       </Card>
 
-      {/* Step 2: Cash/GST */}
       {returnType && (
         <Card size="small" style={{ marginBottom: 8, borderLeft: `4px solid ${color}` }}
           title={<span style={{ color, fontWeight: 700, fontSize: 12, fontFamily: 'Verdana,sans-serif' }}>Step 2 — Cash or GST?</span>}>
@@ -508,10 +468,9 @@ function ReturnPanel() {
         </Card>
       )}
 
-      {/* Step 3: Party */}
       {returnType && cashGst && (
         <Card size="small" style={{ marginBottom: 8, borderLeft: `4px solid ${color}` }}
-          title={<span style={{ color, fontWeight: 700, fontSize: 12, fontFamily: 'Verdana,sans-serif' }}>Step 3 — Select Party (LOV — only received/issued IGP/OGP parties)</span>}>
+          title={<span style={{ color, fontWeight: 700, fontSize: 12, fontFamily: 'Verdana,sans-serif' }}>Step 3 — Select Party (only received/issued IGP/OGP parties)</span>}>
           {loading ? <Spin size="small" /> : (
             <Row gutter={10} align="middle">
               <Col span={10}>
@@ -527,12 +486,11 @@ function ReturnPanel() {
         </Card>
       )}
 
-      {/* Step 4: Items from IGP/OGP */}
       {selectedParty && (
         <Card size="small" style={{ marginBottom: 8, borderLeft: `4px solid ${color}` }}
           title={
             <Row justify="space-between">
-              <Col><span style={{ color, fontWeight: 700, fontSize: 12, fontFamily: 'Verdana,sans-serif' }}>Step 4 — Enter Return Bags (from {returnType === 'PURCHASE_RETURN' ? 'OGP' : 'IGP'} records)</span></Col>
+              <Col><span style={{ color, fontWeight: 700, fontSize: 12, fontFamily: 'Verdana,sans-serif' }}>Step 4 — Enter Return Bags</span></Col>
               <Col><Text style={{ fontSize: 12, fontFamily: 'Verdana,sans-serif' }}>Total: <strong style={{ color }}>Rs {totalValue.toLocaleString('en-PK', { minimumFractionDigits: 2 })}</strong></Text></Col>
             </Row>
           }>
@@ -554,10 +512,8 @@ function ReturnPanel() {
 
       {selectedParty && rows.length > 0 && (
         <div className="form-actions">
-          <Button type="primary" icon={<RetweetOutlined />} loading={saving} onClick={handleSave}
-            style={{ background: color, borderColor: color }}>
-            Save Return Note ({docLabel})
-          </Button>
+          <Button type="primary" icon={<RetweetOutlined />} loading={savingReturn} onClick={handleSave}
+            style={{ background: color, borderColor: color }}>Save Return Note ({docLabel})</Button>
           {savedTxn && <Button icon={<PrinterOutlined />} onClick={() => setPrintModal(true)} style={{ borderColor: color, color }}>Print Return Note</Button>}
           <Button icon={<ReloadOutlined />} onClick={handleReset}>Reset</Button>
         </div>
@@ -579,7 +535,7 @@ function ReturnPanel() {
             <Descriptions.Item label="Type"><Tag color={cashGst === 'GST' ? 'blue' : 'default'}>{cashGst}</Tag></Descriptions.Item>
           </Descriptions>
           <PrintItemsTable rows={rows} totalBags={totalBags} totalValue={totalValue} />
-          {cashGst === 'GST' && <div style={{ marginTop: 8, padding: '6px 10px', background: '#F0F8FF', border: '1px solid #B0D0F0', borderRadius: 4, fontSize: 12 }}>Taxes Calculation (auto show only in case of GST select)</div>}
+          {cashGst === 'GST' && <div style={{ marginTop: 8, padding: '6px 10px', background: '#F0F8FF', border: '1px solid #B0D0F0', borderRadius: 4, fontSize: 12 }}>Taxes Calculation (GST only)</div>}
           <PrintSignatures />
         </div>
       </Modal>
@@ -587,7 +543,6 @@ function ReturnPanel() {
   );
 }
 
-// ─── PANEL: Commission Bill ───────────────────────────────────────────────────
 function CommissionPanel() {
   const color = '#5B2C8D';
   const [contractType, setContractType] = useState(null);
@@ -596,13 +551,9 @@ function CommissionPanel() {
   const [data,         setData]         = useState(null);
   const [praRate,      setPraRate]      = useState(null);
   const [whRate,       setWhRate]       = useState(null);
-  const [saving,       setSaving]       = useState(false);
-  const [error,        setError]        = useState(null);
   const [printModal,   setPrintModal]   = useState(false);
 
-  const CONTRACT_TYPES = [
-    'Cash Purchase', 'GST Purchase', 'Cash Sale', 'GST Sale', 'Services', 'Transaction'
-  ];
+  const CONTRACT_TYPES = ['Cash Purchase', 'GST Purchase', 'Cash Sale', 'GST Sale', 'Services', 'Transaction'];
 
   useEffect(() => {
     contractAPI.getAll()
@@ -626,25 +577,11 @@ function CommissionPanel() {
   const whAmount  = data && whRate  ? parseFloat((data.commAmount * whRate  / 100).toFixed(2)) : 0;
   const netComm   = data ? parseFloat((data.commAmount - praAmount - whAmount).toFixed(2)) : 0;
 
-  const handleReset = () => { setContractType(null); setSelected(null); setData(null); setPraRate(null); setWhRate(null); setError(null); };
-
-  const fieldRow = (label, value, highlight) => (
-    <Row gutter={0} align="middle" style={{ borderBottom: '1px solid #F0F0F0', padding: '5px 0' }}>
-      <Col span={10}><Text style={{ fontSize: 12, fontFamily: 'Verdana,sans-serif', color: '#555' }}>{label}</Text></Col>
-      <Col span={14}>
-        <Text style={{ fontSize: 13, fontFamily: 'Verdana,sans-serif', fontWeight: highlight ? 700 : 400, color: highlight ? color : '#111' }}>
-          {value}
-        </Text>
-      </Col>
-    </Row>
-  );
+  const handleReset = () => { setContractType(null); setSelected(null); setData(null); setPraRate(null); setWhRate(null); };
 
   return (
     <div>
-      {error && <Alert type="error" message={error} style={{ marginBottom: 8 }} closable onClose={() => setError(null)} />}
-
       <Row gutter={14}>
-        {/* Left: Type + Contract selection */}
         <Col xs={24} sm={10}>
           <Card size="small" style={{ marginBottom: 8, borderLeft: `4px solid ${color}` }}
             title={<span style={{ color, fontWeight: 700, fontSize: 12, fontFamily: 'Verdana,sans-serif' }}>Step 1 — Type (LOV)</span>}>
@@ -674,24 +611,34 @@ function CommissionPanel() {
                 </Option>
               ))}
             </Select>
-            <div style={{ marginTop: 6, fontSize: 11, color: '#999', fontFamily: 'Verdana,sans-serif' }}>
-              Ref. Contract &amp; Date: auto from selection
-            </div>
+            <div style={{ marginTop: 6, fontSize: 11, color: '#999', fontFamily: 'Verdana,sans-serif' }}>Ref. Contract &amp; Date: auto from selection</div>
           </Card>
         </Col>
 
-        {/* Right: Commission calculation */}
         <Col xs={24} sm={14}>
           {data ? (
             <Card size="small" style={{ borderLeft: `4px solid ${color}` }}
               title={<span style={{ color, fontWeight: 700, fontSize: 12, fontFamily: 'Verdana,sans-serif' }}>Commission Bill Calculation</span>}>
-              {fieldRow('Contract Ref.', data.c.code?.slice(0, 8))}
-              {fieldRow('Party', data.c.bookingParty?.cashPartyName || data.c.bookingParty?.gstPartyName || '—')}
-              {fieldRow('Count (Total Bags)', `${data.totalBags.toLocaleString('en-PK')} bags`)}
-              {fieldRow('Rate / Value (Rs)', `Rs ${data.totalValue.toLocaleString('en-PK', { minimumFractionDigits: 2 })}`)}
+              {[
+                ['Contract Ref.', data.c.code?.slice(0, 8)],
+                ['Party', data.c.bookingParty?.cashPartyName || data.c.bookingParty?.gstPartyName || '—'],
+                ['Total Bags', `${data.totalBags.toLocaleString('en-PK')} bags`],
+                ['Value (Rs)', `Rs ${data.totalValue.toLocaleString('en-PK', { minimumFractionDigits: 2 })}`],
+              ].map(([l, v]) => (
+                <Row key={l} gutter={0} align="middle" style={{ borderBottom: '1px solid #F0F0F0', padding: '5px 0' }}>
+                  <Col span={10}><Text style={{ fontSize: 12, fontFamily: 'Verdana,sans-serif', color: '#555' }}>{l}</Text></Col>
+                  <Col span={14}><Text style={{ fontSize: 13, fontFamily: 'Verdana,sans-serif' }}>{v}</Text></Col>
+                </Row>
+              ))}
               <Divider style={{ margin: '6px 0' }} />
-              {fieldRow('Commission Rate', `${data.commRate}% (from contract)`)}
-              {fieldRow('Commission Amount (Rs)', `Rs ${data.commAmount.toLocaleString('en-PK', { minimumFractionDigits: 2 })}`, true)}
+              <Row gutter={0} style={{ padding: '5px 0' }}>
+                <Col span={10}><Text style={{ fontSize: 12, fontFamily: 'Verdana,sans-serif', color: '#555' }}>Commission Rate</Text></Col>
+                <Col span={14}><Text style={{ fontSize: 13, fontFamily: 'Verdana,sans-serif' }}>{data.commRate}% (from contract)</Text></Col>
+              </Row>
+              <Row gutter={0} style={{ padding: '5px 0', borderBottom: '1px solid #F0F0F0' }}>
+                <Col span={10}><Text style={{ fontSize: 12, fontFamily: 'Verdana,sans-serif', color: '#555' }}>Commission Amount (Rs)</Text></Col>
+                <Col span={14}><Text style={{ fontSize: 13, fontFamily: 'Verdana,sans-serif', fontWeight: 700, color }}>Rs {data.commAmount.toLocaleString('en-PK', { minimumFractionDigits: 2 })}</Text></Col>
+              </Row>
               <Divider style={{ margin: '6px 0' }} />
               <Row gutter={8} style={{ marginBottom: 4 }}>
                 <Col span={12}>
@@ -726,23 +673,20 @@ function CommissionPanel() {
               </div>
               <div className="form-actions" style={{ marginTop: 8, padding: '6px 0' }}>
                 <Button type="primary" icon={<FileDoneOutlined />} onClick={() => setPrintModal(true)}
-                  style={{ background: color, borderColor: color }}>
-                  Print Commission Bill
-                </Button>
+                  style={{ background: color, borderColor: color }}>Print Commission Bill</Button>
                 <Button icon={<ReloadOutlined />} onClick={handleReset}>Reset</Button>
               </div>
             </Card>
           ) : (
-            <Card size="small" style={{ borderLeft: `4px solid ${color}`, minHeight: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Text type="secondary" style={{ fontFamily: 'Verdana,sans-serif', fontSize: 12 }}>
+            <Card size="small" style={{ borderLeft: `4px solid ${color}`, minHeight: 200 }}>
+              <div style={{ textAlign: 'center', padding: 40, color: '#94A3B8', fontFamily: 'Verdana,sans-serif', fontSize: 12 }}>
                 Select a contract on the left to calculate commission
-              </Text>
+              </div>
             </Card>
           )}
         </Col>
       </Row>
 
-      {/* Print modal */}
       <Modal open={printModal} onCancel={() => setPrintModal(false)} width={620}
         title={<span style={{ fontFamily: 'Verdana,sans-serif', fontWeight: 700 }}>Commission Bill — Preview</span>}
         footer={[
@@ -758,14 +702,14 @@ function CommissionPanel() {
               <Descriptions.Item label="Type">{contractType || '—'}</Descriptions.Item>
               <Descriptions.Item label="Ref. Contract">{data.c.code?.slice(0, 8)} (auto)</Descriptions.Item>
               <Descriptions.Item label="Party">{data.c.bookingParty?.cashPartyName || data.c.bookingParty?.gstPartyName || '—'}</Descriptions.Item>
-              <Descriptions.Item label="Count — Total Bags">{data.totalBags.toLocaleString('en-PK')}</Descriptions.Item>
-              <Descriptions.Item label="Rate — Value (Rs) Total">Rs {data.totalValue.toLocaleString('en-PK', { minimumFractionDigits: 2 })}</Descriptions.Item>
+              <Descriptions.Item label="Total Bags">{data.totalBags.toLocaleString('en-PK')}</Descriptions.Item>
+              <Descriptions.Item label="Value (Rs) Total">Rs {data.totalValue.toLocaleString('en-PK', { minimumFractionDigits: 2 })}</Descriptions.Item>
               <Descriptions.Item label="Commission Rate">{data.commRate}% (auto)</Descriptions.Item>
-              <Descriptions.Item label="Commission Amount (Rs)"><strong>Rs {data.commAmount.toLocaleString('en-PK', { minimumFractionDigits: 2 })}</strong> (auto)</Descriptions.Item>
+              <Descriptions.Item label="Commission Amount (Rs)"><strong>Rs {data.commAmount.toLocaleString('en-PK', { minimumFractionDigits: 2 })}</strong></Descriptions.Item>
               <Descriptions.Item label="PRA Rate">{praRate || 0}%</Descriptions.Item>
-              <Descriptions.Item label="PRA Amount (Rs)">Rs {praAmount.toLocaleString('en-PK', { minimumFractionDigits: 2 })} (auto)</Descriptions.Item>
+              <Descriptions.Item label="PRA Amount (Rs)">Rs {praAmount.toLocaleString('en-PK', { minimumFractionDigits: 2 })}</Descriptions.Item>
               <Descriptions.Item label="WH Tax Rate">{whRate || 0}%</Descriptions.Item>
-              <Descriptions.Item label="WH Tax Amount (Rs)">Rs {whAmount.toLocaleString('en-PK', { minimumFractionDigits: 2 })} (auto)</Descriptions.Item>
+              <Descriptions.Item label="WH Tax Amount (Rs)">Rs {whAmount.toLocaleString('en-PK', { minimumFractionDigits: 2 })}</Descriptions.Item>
             </Descriptions>
             <div style={{ padding: '10px 14px', background: '#F5F0FF', border: `2px solid ${color}`, borderRadius: 5, display: 'flex', justifyContent: 'space-between', marginBottom: 20 }}>
               <strong>Net Commission Amount R/A</strong>
@@ -781,38 +725,19 @@ function CommissionPanel() {
   );
 }
 
-// ─── MAIN PAGE ────────────────────────────────────────────────────────────────
 export default function TransactionList() {
   const tabItems = [
-    {
-      key: 'receipt',
-      label: <span style={{ fontFamily: 'Verdana,sans-serif', fontWeight: 700, fontSize: 12 }}>📥 Yarn Receipt</span>,
-      children: <YarnPanel noteType="YARN_RECEIPT" docLabel="OGP" color="#1B4F8A" bgColor="#EEF4FF" />,
-    },
-    {
-      key: 'issue',
-      label: <span style={{ fontFamily: 'Verdana,sans-serif', fontWeight: 700, fontSize: 12 }}>📤 Yarn Issue</span>,
-      children: <YarnPanel noteType="YARN_ISSUE" docLabel="IGP" color="#1D6A3A" bgColor="#EDFFF4" />,
-    },
-    {
-      key: 'return',
-      label: <span style={{ fontFamily: 'Verdana,sans-serif', fontWeight: 700, fontSize: 12 }}>🔄 Return Note</span>,
-      children: <ReturnPanel />,
-    },
-    {
-      key: 'commission',
-      label: <span style={{ fontFamily: 'Verdana,sans-serif', fontWeight: 700, fontSize: 12 }}>💰 Commission Bill</span>,
-      children: <CommissionPanel />,
-    },
+    { key: 'receipt',    label: <span style={{ fontFamily: 'Verdana,sans-serif', fontWeight: 700, fontSize: 12 }}>📥 Yarn Receipt</span>,    children: <YarnPanel noteType="YARN_RECEIPT" docLabel="OGP" color="#1B4F8A" bgColor="#EEF4FF" /> },
+    { key: 'issue',      label: <span style={{ fontFamily: 'Verdana,sans-serif', fontWeight: 700, fontSize: 12 }}>📤 Yarn Issue</span>,      children: <YarnPanel noteType="YARN_ISSUE"   docLabel="IGP" color="#1D6A3A" bgColor="#EDFFF4" /> },
+    { key: 'return',     label: <span style={{ fontFamily: 'Verdana,sans-serif', fontWeight: 700, fontSize: 12 }}>🔄 Return Note</span>,     children: <ReturnPanel /> },
+    { key: 'commission', label: <span style={{ fontFamily: 'Verdana,sans-serif', fontWeight: 700, fontSize: 12 }}>💰 Commission Bill</span>, children: <CommissionPanel /> },
   ];
 
   return (
     <div style={{ maxWidth: 1100, margin: '0 auto' }}>
       <div style={{ display: 'flex', alignItems: 'center', marginBottom: 10 }}>
         <SwapOutlined style={{ marginRight: 8, color: '#1B4F8A', fontSize: 16 }} />
-        <span style={{ fontSize: 15, fontWeight: 700, color: '#1A1A2E', fontFamily: 'Verdana,sans-serif' }}>
-          Yarn Transactions
-        </span>
+        <span style={{ fontSize: 15, fontWeight: 700, color: '#1A1A2E', fontFamily: 'Verdana,sans-serif' }}>Yarn Transactions</span>
       </div>
       <Tabs items={tabItems} type="card" size="middle" defaultActiveKey="receipt" destroyInactiveTabPane={false} />
     </div>
