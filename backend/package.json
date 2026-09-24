@@ -1,7 +1,6 @@
 {
   "name": "yarn-market-backend",
   "version": "1.0.0",
-  "description": "Company ABC XYZ - Yarn Market Backend API",
   "main": "src/index.js",
   "engines": {
     "node": ">=18.0.0"
@@ -9,11 +8,7 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
-    "build": "npx prisma generate",
-    "db:migrate": "npx prisma migrate dev",
-    "db:deploy": "npx prisma migrate deploy",
-    "db:studio": "npx prisma studio",
-    "db:seed": "node prisma/seed.js"
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@prisma/client": "^5.10.0",
@@ -21,10 +16,10 @@
     "dotenv": "^16.4.1",
     "express": "^4.18.2",
     "helmet": "^7.1.0",
-    "morgan": "^1.10.0"
+    "morgan": "^1.10.0",
+    "prisma": "^5.10.0"
   },
   "devDependencies": {
-    "nodemon": "^3.0.3",
-    "prisma": "^5.10.0"
+    "nodemon": "^3.0.3"
   }
 }

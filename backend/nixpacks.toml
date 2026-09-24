@@ -2,7 +2,7 @@
 cmds = ["npm install"]
 
 [phases.build]
-cmds = ["npx prisma generate"]
+cmds = ["echo build done"]
 
 [start]
 cmd = "node src/index.js"
