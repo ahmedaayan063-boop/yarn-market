@@ -1,8 +1,8 @@
 [phases.install]
-cmds = ["npm install"]
+cmds = ["npm install --ignore-scripts"]
 
 [phases.build]
-cmds = ["echo build done"]
+cmds = ["echo 'skipping build'"]
 
 [start]
-cmd = "node src/index.js"
+cmd = "npx prisma generate && npx prisma migrate deploy && node src/index.js"
