@@ -1,8 +1,11 @@
+[variables]
+PRISMA_SKIP_DATABASE_URL_VALIDATION = "1"
+
 [phases.install]
-cmds = ["npm install --ignore-scripts"]
+cmds = ["npm install"]
 
 [phases.build]
-cmds = ["echo 'skipping build'"]
+cmds = ["echo done"]
 
 [start]
-cmd = "npx prisma generate && npx prisma migrate deploy && node src/index.js"
+cmd = "node src/index.js"

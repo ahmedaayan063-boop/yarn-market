@@ -2,18 +2,13 @@
 node_modules/
 */node_modules/
 
-# Environment files - NEVER commit these
-.env
-*/.env
-backend/.env
+# Real env files - never commit these
 frontend/.env
+# Note: backend/.env is committed with placeholder values only
 
 # Build output
 frontend/build/
 frontend/.cache/
-
-# Prisma
-backend/prisma/migrations/dev/
 
 # Logs
 *.log
