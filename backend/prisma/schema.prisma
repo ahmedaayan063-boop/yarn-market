@@ -11,25 +11,31 @@ model Party {
   id              Int       @id @default(autoincrement())
   code            String    @unique @default(cuid())
   type            PartyType
+
   cashPartyName   String?
   cashAddress     String?
   cashCell        String?
   cashEmail       String?
+
   gstPartyName    String?
   strn            String?
   ntn             String?
   gstAddress      String?
   gstCell         String?
   gstEmail        String?
+
   ipConcernPerson String?
   ipCell          String?
   ipEmail         String?
+
   cpConcernPerson String?
   cpCell          String?
   cpEmail         String?
+
   refPersonName   String?
   refPersonCell   String?
   others          String?
+
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
@@ -165,6 +171,8 @@ model TransactionItem {
 enum PartyType {
   CASH
   GST
+  BROKER
+  COMMISSION_AGENT
 }
 
 enum ItemCategory {
