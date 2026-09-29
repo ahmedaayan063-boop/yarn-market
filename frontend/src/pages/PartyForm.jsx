@@ -11,21 +11,19 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { partyAPI } from '../services/api';
 
 const { Text } = Typography;
-const { Option } = Select;
 
 const PARTY_TYPES = [
-  { value: 'CASH',             label: 'Cash Party',        color: '#1B4F8A', bg: '#EEF4FF' },
-  { value: 'GST',              label: 'GST Party',         color: '#1D6A3A', bg: '#EDFFF4' },
-  { value: 'BROKER',          label: 'Broker',            color: '#7A4F00', bg: '#FFF8EE' },
-  { value: 'COMMISSION_AGENT', label: 'Commission Agent',  color: '#6B3AA0', bg: '#F5F0FF' },
+  { value: 'CASH',             label: 'Cash Party',       color: '#1B4F8A', bg: '#EEF4FF' },
+  { value: 'GST',              label: 'GST Party',        color: '#1D6A3A', bg: '#EDFFF4' },
+  { value: 'BROKER',           label: 'Broker',           color: '#7A4F00', bg: '#FFF8EE' },
+  { value: 'COMMISSION_AGENT', label: 'Commission Agent', color: '#6B3AA0', bg: '#F5F0FF' },
 ];
 
 const lbl = (t) => (
-  <span style={{
-    fontSize: 10, fontWeight: 700, color: '#555',
-    textTransform: 'uppercase', letterSpacing: '0.04em',
-    fontFamily: 'Verdana,sans-serif'
-  }}>{t}</span>
+  <span style={{ fontSize: 10, fontWeight: 700, color: '#555',
+    textTransform: 'uppercase', letterSpacing: '0.04em', fontFamily: 'Verdana,sans-serif' }}>
+    {t}
+  </span>
 );
 
 export default function PartyForm() {
@@ -33,7 +31,6 @@ export default function PartyForm() {
   const navigate    = useNavigate();
   const { id }      = useParams();
   const isEdit      = Boolean(id);
-
   const [loading,   setLoading]   = useState(false);
   const [fetching,  setFetching]  = useState(false);
   const [partyType, setPartyType] = useState(null);
@@ -60,12 +57,10 @@ export default function PartyForm() {
   };
 
   const selType = PARTY_TYPES.find(t => t.value === partyType);
+  const isCashLike = ['CASH', 'BROKER', 'COMMISSION_AGENT'].includes(partyType);
+  const isGst = partyType === 'GST';
 
   if (fetching) return <Spin size="large" style={{ display: 'block', margin: '60px auto' }} />;
-
-  // Broker and Commission Agent use same fields as Cash
-  const isCashLike = partyType === 'CASH' || partyType === 'BROKER' || partyType === 'COMMISSION_AGENT';
-  const isGst      = partyType === 'GST';
 
   return (
     <div style={{ maxWidth: 980, margin: '0 auto' }}>
@@ -74,12 +69,9 @@ export default function PartyForm() {
           <Button icon={<ArrowLeftOutlined />} size="small" onClick={() => navigate('/parties')} />
           <h1 className="page-title">{isEdit ? 'Edit Party' : 'Party Registration'}</h1>
           {selType && (
-            <span style={{
-              background: selType.bg, color: selType.color,
-              border: `1.5px solid ${selType.color}`,
-              borderRadius: 3, padding: '1px 8px',
-              fontSize: 11, fontWeight: 700, fontFamily: 'Verdana,sans-serif'
-            }}>
+            <span style={{ background: selType.bg, color: selType.color,
+              border: `1.5px solid ${selType.color}`, borderRadius: 3,
+              padding: '1px 8px', fontSize: 11, fontWeight: 700, fontFamily: 'Verdana,sans-serif' }}>
               {selType.label}
             </span>
           )}
@@ -98,8 +90,7 @@ export default function PartyForm() {
           <Form.Item name="type" rules={[{ required: true, message: 'Select party type' }]} style={{ marginBottom: 0 }}>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               {PARTY_TYPES.map(t => (
-                <div
-                  key={t.value}
+                <div key={t.value}
                   onClick={() => { setPartyType(t.value); form.setFieldValue('type', t.value); }}
                   style={{
                     padding: '10px 20px',
@@ -109,13 +100,9 @@ export default function PartyForm() {
                     cursor: 'pointer',
                     fontWeight: partyType === t.value ? 700 : 400,
                     color: partyType === t.value ? t.color : '#444',
-                    fontSize: 13,
-                    fontFamily: 'Verdana,sans-serif',
-                    transition: 'all .12s',
-                    minWidth: 140,
-                    textAlign: 'center',
-                  }}
-                >
+                    fontSize: 13, fontFamily: 'Verdana,sans-serif',
+                    transition: 'all .12s', minWidth: 140, textAlign: 'center',
+                  }}>
                   {t.label}
                 </div>
               ))}
@@ -123,18 +110,18 @@ export default function PartyForm() {
           </Form.Item>
         </Card>
 
-        {/* Party details */}
+        {/* Cash / Broker / Commission Agent details */}
         {isCashLike && (
           <Card title={`${selType?.label} Details`} style={{ marginBottom: 8 }}>
             <Row gutter={10}>
               <Col xs={24} sm={8}>
                 <Form.Item name="cashPartyName" label={lbl('Name')} rules={[{ required: true, message: 'Name is required' }]}>
-                  <Input placeholder={`${selType?.label} name`} style={{ fontFamily: 'Verdana,sans-serif' }} />
+                  <Input placeholder={`${selType?.label} name`} />
                 </Form.Item>
               </Col>
               <Col xs={24} sm={8}>
                 <Form.Item name="cashAddress" label={lbl('Address')}>
-                  <Input placeholder="Address" style={{ fontFamily: 'Verdana,sans-serif' }} />
+                  <Input placeholder="Address" />
                 </Form.Item>
               </Col>
               <Col xs={24} sm={4}>
@@ -152,12 +139,13 @@ export default function PartyForm() {
           </Card>
         )}
 
+        {/* GST details */}
         {isGst && (
           <Card title="GST Party Details" style={{ marginBottom: 8 }}>
             <Row gutter={10}>
               <Col xs={24} sm={6}>
                 <Form.Item name="gstPartyName" label={lbl('GST Party Name')} rules={[{ required: true }]}>
-                  <Input placeholder="Registered name" style={{ fontFamily: 'Verdana,sans-serif' }} />
+                  <Input placeholder="Registered name" />
                 </Form.Item>
               </Col>
               <Col xs={24} sm={4}>
@@ -190,12 +178,13 @@ export default function PartyForm() {
           </Card>
         )}
 
-        {/* Concern persons — for all types */}
+        {/* Concern persons */}
         {partyType && (
           <Card title="Concern Persons & Reference" style={{ marginBottom: 8 }}>
             <Row gutter={10}>
               <Col span={1} style={{ display: 'flex', alignItems: 'center', paddingTop: 18 }}>
-                <Text style={{ fontSize: 9, fontWeight: 700, color: '#1B4F8A', writingMode: 'vertical-rl', transform: 'rotate(180deg)', fontFamily: 'Verdana,sans-serif' }}>IP</Text>
+                <Text style={{ fontSize: 9, fontWeight: 700, color: '#1B4F8A',
+                  writingMode: 'vertical-rl', transform: 'rotate(180deg)', fontFamily: 'Verdana,sans-serif' }}>IP</Text>
               </Col>
               <Col xs={24} sm={5}>
                 <Form.Item name="ipConcernPerson" label={lbl('IP Concern Person')}>
@@ -213,9 +202,9 @@ export default function PartyForm() {
                   <Input prefix={<MailOutlined />} />
                 </Form.Item>
               </Col>
-
               <Col span={1} style={{ display: 'flex', alignItems: 'center', paddingTop: 18, paddingLeft: 8 }}>
-                <Text style={{ fontSize: 9, fontWeight: 700, color: '#7A4F00', writingMode: 'vertical-rl', transform: 'rotate(180deg)', fontFamily: 'Verdana,sans-serif' }}>CP</Text>
+                <Text style={{ fontSize: 9, fontWeight: 700, color: '#7A4F00',
+                  writingMode: 'vertical-rl', transform: 'rotate(180deg)', fontFamily: 'Verdana,sans-serif' }}>CP</Text>
               </Col>
               <Col xs={24} sm={5}>
                 <Form.Item name="cpConcernPerson" label={lbl('CP Concern Person')}>
@@ -234,7 +223,8 @@ export default function PartyForm() {
 
             <Row gutter={10}>
               <Col span={1} style={{ display: 'flex', alignItems: 'center', paddingTop: 18 }}>
-                <Text style={{ fontSize: 9, fontWeight: 700, color: '#444', writingMode: 'vertical-rl', transform: 'rotate(180deg)', fontFamily: 'Verdana,sans-serif' }}>REF</Text>
+                <Text style={{ fontSize: 9, fontWeight: 700, color: '#444',
+                  writingMode: 'vertical-rl', transform: 'rotate(180deg)', fontFamily: 'Verdana,sans-serif' }}>REF</Text>
               </Col>
               <Col xs={24} sm={5}>
                 <Form.Item name="refPersonName" label={lbl('Ref. Person Name')}>
@@ -261,9 +251,7 @@ export default function PartyForm() {
             style={{ background: '#1B4F8A', borderColor: '#1B4F8A' }}>
             {isEdit ? 'Update Party' : 'Save Party'}
           </Button>
-          <Button icon={<ReloadOutlined />} onClick={() => { form.resetFields(); setPartyType(null); }}>
-            Reset
-          </Button>
+          <Button icon={<ReloadOutlined />} onClick={() => { form.resetFields(); setPartyType(null); }}>Reset</Button>
           <Button onClick={() => navigate('/parties')}>Cancel</Button>
         </div>
       </Form>
