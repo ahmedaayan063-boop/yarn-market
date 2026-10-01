@@ -57,8 +57,7 @@ export default function PartyForm() {
   };
 
   const selType = PARTY_TYPES.find(t => t.value === partyType);
-  const isCashLike = ['CASH', 'BROKER', 'COMMISSION_AGENT'].includes(partyType);
-  const isGst = partyType === 'GST';
+  const isGst   = partyType === 'GST';
 
   if (fetching) return <Spin size="large" style={{ display: 'block', margin: '60px auto' }} />;
 
@@ -110,8 +109,8 @@ export default function PartyForm() {
           </Form.Item>
         </Card>
 
-        {/* Cash / Broker / Commission Agent details */}
-        {isCashLike && (
+        {/* Cash / Broker details */}
+        {(partyType === 'CASH' || partyType === 'BROKER') && (
           <Card title={`${selType?.label} Details`} style={{ marginBottom: 8 }}>
             <Row gutter={10}>
               <Col xs={24} sm={8}>
@@ -132,6 +131,45 @@ export default function PartyForm() {
               </Col>
               <Col xs={24} sm={4}>
                 <Form.Item name="cashEmail" label={lbl('Email')} rules={[{ type: 'email' }]}>
+                  <Input prefix={<MailOutlined />} placeholder="email@example.com" />
+                </Form.Item>
+              </Col>
+            </Row>
+          </Card>
+        )}
+
+        {/* Commission Agent details — with PNTN, NTN, Cell, Email */}
+        {partyType === 'COMMISSION_AGENT' && (
+          <Card title="Commission Agent Details" style={{ marginBottom: 8 }}>
+            <Row gutter={10}>
+              <Col xs={24} sm={6}>
+                <Form.Item name="cashPartyName" label={lbl('Name')} rules={[{ required: true, message: 'Name is required' }]}>
+                  <Input placeholder="Commission Agent name" />
+                </Form.Item>
+              </Col>
+              <Col xs={24} sm={6}>
+                <Form.Item name="cashAddress" label={lbl('Address')}>
+                  <Input placeholder="Address" />
+                </Form.Item>
+              </Col>
+              <Col xs={24} sm={4}>
+                <Form.Item name="strn" label={lbl('PNTN')}>
+                  <Input placeholder="PNTN number" />
+                </Form.Item>
+              </Col>
+              <Col xs={24} sm={4}>
+                <Form.Item name="ntn" label={lbl('NTN')}>
+                  <Input placeholder="NTN number" />
+                </Form.Item>
+              </Col>
+              <Col xs={24} sm={4}>
+                <Form.Item name="cashCell" label={lbl('Cell No')}
+                  rules={[{ pattern: /^03[0-9]{9}$/, message: 'Enter valid number' }]}>
+                  <Input prefix={<PhoneOutlined />} placeholder="03xxxxxxxxx" maxLength={11} />
+                </Form.Item>
+              </Col>
+              <Col xs={24} sm={4}>
+                <Form.Item name="cashEmail" label={lbl('Email ID')} rules={[{ type: 'email' }]}>
                   <Input prefix={<MailOutlined />} placeholder="email@example.com" />
                 </Form.Item>
               </Col>
@@ -178,8 +216,8 @@ export default function PartyForm() {
           </Card>
         )}
 
-        {/* Concern persons */}
-        {partyType && (
+        {/* GST — full IP / CP / Reference */}
+        {isGst && (
           <Card title="Concern Persons & Reference" style={{ marginBottom: 8 }}>
             <Row gutter={10}>
               <Col span={1} style={{ display: 'flex', alignItems: 'center', paddingTop: 18 }}>
@@ -218,9 +256,7 @@ export default function PartyForm() {
                 </Form.Item>
               </Col>
             </Row>
-
             <Divider style={{ margin: '4px 0 8px' }} />
-
             <Row gutter={10}>
               <Col span={1} style={{ display: 'flex', alignItems: 'center', paddingTop: 18 }}>
                 <Text style={{ fontSize: 9, fontWeight: 700, color: '#444',
@@ -238,6 +274,34 @@ export default function PartyForm() {
                 </Form.Item>
               </Col>
               <Col xs={24} sm={5}>
+                <Form.Item name="others" label={lbl('Others / Notes')}>
+                  <Input placeholder="Additional notes" />
+                </Form.Item>
+              </Col>
+            </Row>
+          </Card>
+        )}
+
+        {/* Cash / Broker / Commission Agent — Reference only (no IP/CP) */}
+        {(partyType === 'CASH' || partyType === 'BROKER' || partyType === 'COMMISSION_AGENT') && (
+          <Card title="Reference" style={{ marginBottom: 8 }}>
+            <Row gutter={10}>
+              <Col span={1} style={{ display: 'flex', alignItems: 'center', paddingTop: 18 }}>
+                <Text style={{ fontSize: 9, fontWeight: 700, color: '#444',
+                  writingMode: 'vertical-rl', transform: 'rotate(180deg)', fontFamily: 'Verdana,sans-serif' }}>REF</Text>
+              </Col>
+              <Col xs={24} sm={6}>
+                <Form.Item name="refPersonName" label={lbl('Ref. Person Name')}>
+                  <Input placeholder="Name" />
+                </Form.Item>
+              </Col>
+              <Col xs={24} sm={5}>
+                <Form.Item name="refPersonCell" label={lbl('Ref. Cell')}
+                  rules={[{ pattern: /^03[0-9]{9}$/, message: 'Invalid' }]}>
+                  <Input prefix={<PhoneOutlined />} placeholder="03xxxxxxxxx" maxLength={11} />
+                </Form.Item>
+              </Col>
+              <Col xs={24} sm={6}>
                 <Form.Item name="others" label={lbl('Others / Notes')}>
                   <Input placeholder="Additional notes" />
                 </Form.Item>
