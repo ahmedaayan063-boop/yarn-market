@@ -11,11 +11,11 @@ const { Header, Sider, Content } = Layout;
 const { Text } = Typography;
 
 const menuItems = [
-  { key: '/',            icon: <DashboardOutlined />, label: 'Dashboard'         },
-  { key: '/parties',     icon: <TeamOutlined />,      label: 'Parties'           },
-  { key: '/items',       icon: <AppstoreOutlined />,  label: 'Items'             },
-  { key: '/contracts',   icon: <FileTextOutlined />,  label: 'Contracts'         },
-  { key: '/transactions',icon: <SwapOutlined />,      label: 'Transactions'      },
+  { key: '/',            icon: <DashboardOutlined />, label: 'Dashboard'        },
+  { key: '/parties',     icon: <TeamOutlined />,      label: 'Parties'          },
+  { key: '/items',       icon: <AppstoreOutlined />,  label: 'Items'            },
+  { key: '/contracts',   icon: <FileTextOutlined />,  label: 'Contracts'        },
+  { key: '/transactions',icon: <SwapOutlined />,      label: 'Transactions'     },
 ];
 
 export default function MainLayout({ children }) {
@@ -38,7 +38,6 @@ export default function MainLayout({ children }) {
           boxShadow: '2px 0 6px rgba(0,0,0,0.2)'
         }}
       >
-        {/* Logo */}
         <div style={{
           padding: collapsed ? '12px 8px' : '12px 14px',
           borderBottom: '1px solid #2D2D44',
@@ -47,8 +46,8 @@ export default function MainLayout({ children }) {
           <Avatar style={{ background: '#1B4F8A', flexShrink: 0, fontWeight: 700, fontSize: 13 }} size={32}>AZ</Avatar>
           {!collapsed && (
             <div>
-              <div style={{ color: '#F0F0F0', fontWeight: 700, fontSize: 13, lineHeight: 1.2, fontFamily: 'Verdana, sans-serif' }}>ABC XYZ</div>
-              <div style={{ color: '#888', fontSize: 10, marginTop: 1, fontFamily: 'Verdana, sans-serif' }}>Yarn Market</div>
+              <div style={{ color: '#F0F0F0', fontWeight: 700, fontSize: 13, lineHeight: 1.2 }}>ABC XYZ</div>
+              <div style={{ color: '#888', fontSize: 10, marginTop: 1 }}>Yarn Market</div>
             </div>
           )}
         </div>
@@ -56,7 +55,7 @@ export default function MainLayout({ children }) {
         <Menu
           mode="inline" selectedKeys={[activeKey]} items={menuItems}
           onClick={({ key }) => navigate(key)}
-          style={{ background: 'transparent', border: 'none', marginTop: 6, fontSize: 12 }}
+          style={{ background: 'transparent', border: 'none', marginTop: 6 }}
           theme="dark"
         />
 
@@ -76,10 +75,10 @@ export default function MainLayout({ children }) {
           position: 'sticky', top: 0, zIndex: 10,
           boxShadow: '0 2px 4px rgba(0,0,0,0.15)', height: 44,
         }}>
-          <Text style={{ fontSize: 13, fontWeight: 700, color: '#fff', fontFamily: 'Verdana, sans-serif' }}>
-            Company ABC XYZ &mdash; Yarn Market, Faisalabad
+          <Text style={{ fontSize: 13, fontWeight: 700, color: '#fff' }}>
+            Company ABC XYZ — Yarn Market, Faisalabad
           </Text>
-          <Text style={{ fontSize: 11, color: '#B8D4F0', fontFamily: 'Verdana, sans-serif' }}>
+          <Text style={{ fontSize: 11, color: '#B8D4F0' }}>
             {new Date().toLocaleDateString('en-PK', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
           </Text>
         </Header>
